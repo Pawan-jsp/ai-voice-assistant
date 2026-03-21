@@ -30,7 +30,6 @@ jobs:
       # 4️⃣ Build & Push Docker Image
       - name: Build & Push
         run: |
-          cd frontend
-          docker build -t github-ecr .
+          docker build -f frontend/Dockerfile -t github-ecr frontend
           docker tag github-ecr:latest 545009838877.dkr.ecr.ap-south-1.amazonaws.com/github-ecr:latest
           docker push 545009838877.dkr.ecr.ap-south-1.amazonaws.com/github-ecr:latest
