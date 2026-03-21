@@ -1,35 +1,50 @@
-name: Simple Frontend Deploy to ECS
+name: Deploy Frontend to ECS
 
 on:
   push:
     branches:
       - main
 
+env:
+  AWS_REGION: ap-south-1
+  AWS_ACCOUNT_ID: 545009838877
+  ECR_REPO: github-ecr
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout code
-      - name: Checkout
-        uses: actions/checkout@v4
+      # 1️⃣ Checkout
+      - uses: actions/checkout@v4
 
-      # 2️⃣ Configure AWS
-      - name: Configure AWS
-        uses: aws-actions/configure-aws-credentials@v2
+      # 2️⃣ AWS Login
+      - uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
+          aws-region: ${{ env.AWS_REGION }}
 
       # 3️⃣ Login to ECR
       - name: Login to ECR
         run: |
-          aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 545009838877.dkr.ecr.ap-south-1.amazonaws.com
+          aws ecr get-login-password --region $AWS_REGION | \
+          docker login --username AWS --password-stdin \
+          $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
-      # 4️⃣ Build & Push Docker Image
-      - name: Build & Push
+      # 4️⃣ Build Docker Image
+      - name: Build Image
         run: |
-          docker build -f frontend/Dockerfile -t github-ecr frontend
-          docker tag github-ecr:latest 545009838877.dkr.ecr.ap-south-1.amazonaws.com/github-ecr:latest
-          docker push 545009838877.dkr.ecr.ap-south-1.amazonaws.com/github-ecr:latest
+          docker build -f frontend/Dockerfile -t $ECR_REPO frontend
+
+      # 5️⃣ Tag Image
+      - name: Tag Image
+        run: |
+          docker tag $ECR_REPO:latest \
+          $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:latest
+
+      # 6️⃣ Push Image
+      - name: Push Image
+        run: |
+          docker push \
+          $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:latest
