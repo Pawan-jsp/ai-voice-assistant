@@ -1,23 +1,19 @@
-# Use Node image
 FROM node:18-alpine
 
-# Set working directory
 WORKDIR /app
 
-# Copy files
-COPY frontend/package*.json ./
+# Copy only package files first (best practice)
+COPY frontend/package.json frontend/package-lock.json* ./
 
 # Install dependencies
-RUN npm install
+RUN npm install --legacy-peer-deps
 
-# Copy all files
+# Copy remaining code
 COPY frontend/ .
 
-# Build app
+# Build
 RUN npm run build
 
-# Expose port
 EXPOSE 3000
 
-# Start app
 CMD ["npm", "start"]
