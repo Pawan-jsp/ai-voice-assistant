@@ -10,39 +10,44 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout
+      # ✅ Checkout
       - uses: actions/checkout@v4
 
-      # AWS Login
+      # ✅ AWS Login
       - uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1
 
-      # ECR Login
-      - run: |
-          aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 545009838877.dkr.ecr.ap-south-1.amazonaws.com
+      # ✅ ECR Login
+      - name: Login to ECR
+        run: |
+          aws ecr get-login-password --region ap-south-1 | \
+          docker login --username AWS --password-stdin \
+          545009838877.dkr.ecr.ap-south-1.amazonaws.com
 
-      # Build Frontend Image
-      - run: |
-           - name: Build Frontend
-      - run: |
-           docker build -f frontend/Dockerfile -t frontend-ecr frontend
+      # ✅ Build Frontend Image
+      - name: Build Frontend
+        run: |
+          docker build -f frontend/Dockerfile -t frontend-ecr frontend
 
-      # Tag
-      - run: |
-          docker tag pawan-ecr:latest 545009838877.dkr.ecr.ap-south-1.amazonaws.com/pawan-ecr:latest
-      # Push
-      - run: |
-          docker push 545009838877.dkr.ecr.ap-south-1.amazonaws.com/pawan-ecr:latest
-       # Deploy
-      - run: |
+      # ✅ Tag Image
+      - name: Tag Image
+        run: |
+          docker tag frontend-ecr:latest \
+          545009838877.dkr.ecr.ap-south-1.amazonaws.com/frontend-ecr:latest
+
+      # ✅ Push Image
+      - name: Push Image
+        run: |
+          docker push \
+          545009838877.dkr.ecr.ap-south-1.amazonaws.com/frontend-ecr:latest
+
+      # ✅ Deploy to ECS
+      - name: Deploy
+        run: |
           aws ecs update-service \
             --cluster pawan-ecs \
             --service pawan-ecr-service-9u279cix \
             --force-new-deployment
-      
-
-
-      
