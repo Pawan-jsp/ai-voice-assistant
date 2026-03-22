@@ -26,7 +26,10 @@ jobs:
 
       # Build Frontend Image
       - run: |
-          docker build -t pawan-ecr .
+           - name: Build Frontend
+      - run: |
+           docker build -f frontend/Dockerfile -t frontend-ecr frontend
+           docker build -t pawan-ecr .
 
       # Tag
       - run: |
